@@ -41,3 +41,19 @@ export interface DashboardData {
   topCategory: TopCategory;
   activities: Activity[];
 }
+
+/* ---------- Analytics screen ---------- */
+export type AnalyticsPeriod = '7D' | '30D' | '90D';
+
+export interface BreakdownItem { id: string; label: string; value: number; sharePct: number }
+export interface TopProduct { id: string; name: string; category: string; units: number; revenue: number }
+
+export interface AnalyticsData {
+  period: AnalyticsPeriod;
+  totalRevenue: number;
+  changePct: number; // vs previous period of the same length
+  trend: TrendPoint[];
+  categories: BreakdownItem[];
+  regions: BreakdownItem[];
+  topProducts: TopProduct[];
+}

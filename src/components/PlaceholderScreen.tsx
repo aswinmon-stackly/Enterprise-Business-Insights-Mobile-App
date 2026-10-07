@@ -21,14 +21,14 @@ export function PlaceholderScreen({ title, description, icon }: Props) {
         <Text style={styles.heading}>Coming Soon</Text>
         <Text style={styles.desc}>{description}</Text>
         <View style={styles.pillRow}>
-          <View style={styles.pill}>
+          {/* <View style={styles.pill}>
             <View style={[styles.pillDot, { backgroundColor: colors.primaryLight }]} />
             <Text style={styles.pillText}>Powered by FastAPI</Text>
-          </View>
-          <View style={styles.pill}>
+          </View> */}
+          {/* <View style={styles.pill}>
             <View style={[styles.pillDot, { backgroundColor: colors.teal }]} />
             <Text style={styles.pillText}>Real-time data</Text>
-          </View>
+          </View> */}
         </View>
       </View>
     </ScreenContainer>
