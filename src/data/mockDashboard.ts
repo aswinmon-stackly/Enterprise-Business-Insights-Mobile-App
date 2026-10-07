@@ -1,7 +1,7 @@
 import { DashboardData } from '../types';
 
 export const mockDashboard: DashboardData = {
-  user: { name: 'Arjun Nair', role: 'Regional Sales Head' },
+  user: { name: 'Aswin', role: 'Regional Sales Head' },
   unreadNotifications: 3,
   kpis: [
     { id: 'revenue', label: 'Revenue', value: 12840000, format: 'currency', changePct: 12.4 },
