@@ -1,10 +1,15 @@
-node_modules/
-.expo/
-dist/
-*.log
+# Environment files
 .env
-.venv/
-venv/
-__pycache__/
-*.pyc
-.pytest_cache/
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+
+# Build
+dist/
+build/
+.vite/
+
+# Logs
+*.log
