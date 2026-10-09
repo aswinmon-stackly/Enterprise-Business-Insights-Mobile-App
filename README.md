@@ -1,87 +1,216 @@
 # Enterprise Business Insights
 
-React Native (Expo + TypeScript) mobile app, FastAPI backend, PostgreSQL database.
+Enterprise Business Insights is a mobile application built using **React Native, Expo, and TypeScript**. It uses a **FastAPI backend** and a **PostgreSQL database** to display business information.
 
-```
+## Project Structure
+
+```text
 .
-├── frontend/                 Expo / React Native app
-│   └── src/ components/ screens/ navigation/ hooks/ services/ types/ utils/ theme/ config/
-├── backend/                  FastAPI app
+├── frontend/                  Expo / React Native app
+│   └── src/
+│       ├── components/        Reusable UI components
+│       ├── screens/           App screens
+│       ├── navigation/        Screen navigation
+│       ├── hooks/             Custom React hooks
+│       ├── services/          API and data services
+│       ├── types/             TypeScript types
+│       ├── utils/             Helper functions
+│       ├── theme/             App styles and colors
+│       └── config/            App configuration
+│
+├── backend/                   FastAPI backend
 │   ├── app/
-│   │   ├── main.py           app, CORS, lifespan, /health
-│   │   ├── config.py         settings (DATABASE_URL via .env)
-│   │   ├── routers/          HTTP layer
-│   │   ├── schemas/          Pydantic response models (the API contract)
-│   │   ├── services/         business rules (periods, % change, target progress)
-│   │   ├── repositories/     all SQL (SQLAlchemy queries)
-│   │   ├── models/           SQLAlchemy tables
-│   │   ├── db/               engine/session, seed script
-│   │   └── utils/
-│   └── tests/
-└── docker-compose.yml        PostgreSQL 16
+│   │   ├── main.py            Main app, CORS, and health checks
+│   │   ├── config.py          Environment settings
+│   │   ├── routers/           API endpoints
+│   │   ├── schemas/           API request and response models
+│   │   ├── services/          Business logic
+│   │   ├── repositories/      Database queries
+│   │   ├── models/            Database table models
+│   │   ├── db/                Database connection and seed script
+│   │   └── utils/             Helper functions
+│   └── tests/                 Backend tests
+│
+└── docker-compose.yml         PostgreSQL 16 setup
 ```
 
-## 1. Database (PostgreSQL)
-**Option A: Docker**
+## 1. Set Up the Database
+
+There are two ways to set up PostgreSQL.
+
+### Option A: Use Docker
+
+Run this command from the project root folder:
+
 ```powershell
 docker compose up -d
 ```
-**Option B: local PostgreSQL** (installer or pgAdmin): create a database named `business_insights`, then set your own user/password in `backend/.env`.
 
-## 2. Backend (Python 3.10+)
+This starts the PostgreSQL database using Docker.
+
+### Option B: Use Local PostgreSQL
+
+Install PostgreSQL on your computer or use pgAdmin.
+
+Create a database named `business_insights`.
+
+Then, update the database username and password in `backend/.env`.
+
+## 2. Set Up the Backend
+
+The backend requires Python 3.10 or later.
+
+Open PowerShell and run these commands:
+
 ```powershell
 cd backend
+
 python -m venv .venv
-.venv\Scripts\Activate.ps1            # macOS/Linux: source .venv/bin/activate
+
+.venv\Scripts\Activate.ps1
+
 pip install -r requirements.txt
-copy .env.example .env                # edit DATABASE_URL if your credentials differ
-python -m app.db.seed                 # creates tables + demo data (use --reset to re-seed)
+
+copy .env.example .env
+```
+
+Open the `.env` file and update the database connection details if needed.
+
+Next, create the database tables and insert sample data:
+
+```powershell
+python -m app.db.seed
+```
+
+To reset the sample data, run:
+
+```powershell
+python -m app.db.seed --reset
+```
+
+Start the backend server:
+
+```powershell
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
-- Swagger: http://localhost:8000/docs
-- `GET /api/dashboard`, `GET /health`, `GET /health/db`
-- Tests (no PostgreSQL needed, uses in-memory SQLite): `pip install -r requirements-dev.txt` then `pytest`
 
-`--host 0.0.0.0` lets a phone on the same Wi-Fi reach the API. On Windows, allow Python through the firewall (private networks).
+### Backend URLs
 
-## 3. Frontend
+- **Swagger API documentation:** http://localhost:8000/docs
+- **Dashboard API:** `GET /api/dashboard`
+- **Health check:** `GET /health`
+- **Database health check:** `GET /health/db`
+
+You can use Swagger to test the API endpoints.
+
+### Run Backend Tests
+
+Install the development dependencies:
+
+```powershell
+pip install -r requirements-dev.txt
+```
+
+Run the tests:
+
+```powershell
+pytest
+```
+
+The tests use an in-memory SQLite database, so a PostgreSQL database is not required to run them.
+
+**Note:** The `--host 0.0.0.0` option allows other devices on the same Wi-Fi network to access the backend. On Windows, allow Python through the firewall for private networks.
+
+## 3. Set Up the Frontend
+
+Open a new terminal and run:
+
 ```powershell
 cd frontend
+
 npm install
+
 npx expo start -c
 ```
-Scan the QR in Expo Go (same Wi-Fi) or press `w` for the browser. The API URL is detected from the machine serving Expo (`http://<pc-ip>:8000`). Override via `frontend/.env` (`EXPO_PUBLIC_API_URL`, see `.env.example`).
 
-## Database schema
+You can run the app in two ways:
+
+- **Mobile:** Scan the QR code using Expo Go. Your phone and computer should be connected to the same Wi-Fi network.
+- **Browser:** Press `w` in the Expo terminal to open the web version, if supported by the project.
+
+### Configure the API URL
+
+The frontend connects to the FastAPI backend.
+
+By default, it detects the computer's IP address and uses port `8000`.
+
+If needed, create or update `frontend/.env` with the following setting:
+
+```env
+EXPO_PUBLIC_API_URL=http://YOUR_PC_IP:8000
+```
+
+Replace `YOUR_PC_IP` with your computer's local IP address.
+
+Check the `.env.example` file for the expected configuration.
+
+## 4. Database Tables
+
+The database contains the following tables:
+
 | Table | Purpose |
 |---|---|
-| `categories`, `customers` | reference data (customers have a region) |
-| `orders` | amount, cost, status (`delivered/pending/cancelled`), category, customer, `created_at` |
-| `sales_targets` | monthly sales target |
-| `activities` | recent business events |
-| `alerts` | notifications (`is_read` drives the unread badge) |
-| `users` | profile shown in the header |
+| `categories` | Stores product or business categories |
+| `customers` | Stores customer information and regions |
+| `orders` | Stores order amounts, costs, statuses, categories, customers, and dates |
+| `sales_targets` | Stores monthly sales targets |
+| `activities` | Stores recent business activities |
+| `alerts` | Stores notifications and their read status |
+| `users` | Stores user profile information shown in the app |
 
-Dashboard numbers are **computed with SQL aggregates** (nothing is stored pre-calculated):
-- KPIs = last 30 days vs the previous 30 days (`SUM`, `COUNT`, `COUNT DISTINCT`), % change derived from both
-- revenue trend = last 7 days, `GROUP BY date`, zero-filled
-- top category = `JOIN categories ... GROUP BY name ORDER BY SUM(amount) DESC`
-- target achieved = revenue / `sales_targets.amount`; fulfilment = delivered / orders (cancelled orders excluded)
+## 5. How Dashboard Data Is Calculated
 
-Periods are anchored on the latest order, so the demo data always fills the window. Re-run `python -m app.db.seed --reset` to regenerate.
+The dashboard calculates its numbers directly from the database using SQL queries. The calculated dashboard values are not stored in separate database fields.
 
-## Data flow
+- **KPIs:** Compare the latest 30 days with the previous 30 days using SQL functions such as `SUM`, `COUNT`, and `COUNT DISTINCT`.
+- **Percentage change:** Calculate the difference between the two periods.
+- **Revenue trend:** Calculate daily revenue for the latest seven days and show zero for days without sales.
+- **Top category:** Find the category with the highest sales amount by joining the categories and orders tables.
+- **Target achievement:** Calculate revenue divided by the sales target.
+- **Order fulfilment:** Calculate delivered orders divided by total eligible orders, excluding cancelled orders.
+
+The dashboard uses the date of the latest order to calculate the reporting periods. This helps the sample data fill the dashboard's date ranges.
+
+To generate fresh sample data, run:
+
+```powershell
+python -m app.db.seed --reset
 ```
-DashboardScreen -> useDashboardData -> dashboardService -> apiClient (fetch)
-  -> GET /api/dashboard
-  -> router (Depends(get_db)) -> dashboard_service (business rules)
-  -> dashboard_repository (SQLAlchemy) -> PostgreSQL
-  -> DashboardResponse (Pydantic validation, camelCase JSON)
-  -> mapDashboard() -> reusable components
-```
-A database failure returns `503` with a generic message; the app shows its friendly error + Retry (raw errors stay in server logs).
 
-## Notes
-- Tables are created on startup via `create_all` (dev convenience). Use Alembic migrations before production.
-- Authentication and per-user data are the next step; today there is a single demo user.
-- The Analytics tab still uses local mock data.
+## 6. How Data Flows Through the Application
+
+The dashboard follows this process:
+
+1. `DashboardScreen` displays the dashboard UI.
+2. `useDashboardData` manages dashboard data loading.
+3. `dashboardService` handles dashboard-related data requests.
+4. `apiClient` sends a request to the backend.
+5. The backend receives the request through `GET /api/dashboard`.
+6. The router gets a database session using `Depends(get_db)`.
+7. The dashboard service applies the business logic.
+8. The dashboard repository runs SQLAlchemy queries against PostgreSQL.
+9. `DashboardResponse` validates the response data using Pydantic and returns JSON in camelCase format.
+10. `mapDashboard()` converts the API response into the format used by the frontend components.
+
+### Error Handling
+
+If the database is unavailable, the backend returns a `503` error with a general error message.
+
+The frontend displays a friendly error message and a Retry option. Detailed technical errors remain in the backend logs.
+
+## 7. Important Notes
+
+- Database tables are created automatically at startup using `create_all`. This is convenient for development.
+- Before using the application in production, use Alembic migrations to manage database changes.
+- Authentication and user-specific data have not been implemented yet. The application currently uses a single demo user.
+- The Analytics tab still uses local mock data. It has not yet been connected to the backend.
