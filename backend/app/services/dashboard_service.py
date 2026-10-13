@@ -1,59 +1,58 @@
-from datetime import datetime, time, timedelta, timezone
+from datetime import timedelta
 
 from sqlalchemy.orm import Session
 
-from app.repositories import dashboard_repository as repo
+from app.core.business_rules import REPORTING_PERIOD_DAYS, TREND_DAYS
+from app.models.enums import OrderStatus
+from app.repositories import meta_repository as meta
+from app.repositories import order_repository as orders
 from app.schemas.dashboard import DashboardResponse
-from app.utils.time import utc_now
+from app.services import activity_service, analytics_service
+from app.utils.time import ensure_utc, utc_now
 
-PERIOD_DAYS = 30
+RECENT_ACTIVITY_LIMIT = 5
 
 
 def _pct_change(current: float, previous: float) -> float:
     return round((current - previous) / previous * 100, 1) if previous else 0.0
 
 
-def _aware(dt: datetime) -> datetime:
-    return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
-
-
 def get_dashboard(db: Session) -> DashboardResponse:
-    """Business rules: periods, % change, fulfilment rate, target progress.
-
-    Anchored on the latest order so the demo dataset always fills the window,
-    even if it was seeded days ago.
-    """
-    as_of = _aware(repo.latest_order_time(db) or utc_now())
+    """Applies the rules documented in app/core/business_rules.py to rows aggregated by PostgreSQL."""
+    as_of = ensure_utc(orders.latest_order_time(db) or utc_now())
     end = as_of + timedelta(seconds=1)
-    cur_start = as_of - timedelta(days=PERIOD_DAYS)
-    prev_start = as_of - timedelta(days=PERIOD_DAYS * 2)
+    cur_start = as_of - timedelta(days=REPORTING_PERIOD_DAYS)
+    prev_start = as_of - timedelta(days=REPORTING_PERIOD_DAYS * 2)
 
-    cur = repo.period_totals(db, cur_start, end)
-    prev = repo.period_totals(db, prev_start, cur_start)
+    cur = orders.period_kpis(db, cur_start, end)
+    prev = orders.period_kpis(db, prev_start, cur_start)
 
-    # last 7 calendar days, zero-filled
-    first_day = (as_of - timedelta(days=6)).date()
-    daily = repo.daily_revenue(db, datetime.combine(first_day, time.min, tzinfo=timezone.utc), end)
-    trend = []
-    for i in range(7):
-        d = first_day + timedelta(days=i)
-        trend.append({"label": d.strftime("%a"), "value": daily.get(d, 0.0)})
+    counts = orders.status_counts(db, cur_start, end)
+    breakdown = [{"status": s.value, "count": counts.get(s.value, 0)} for s in OrderStatus]  # every status, zero-filled
+    total_orders = sum(b["count"] for b in breakdown)
+    delivered = counts.get(OrderStatus.DELIVERED.value, 0)
 
-    cats_cur = repo.category_revenue(db, cur_start, end)
-    cats_prev = dict(repo.category_revenue(db, prev_start, cur_start))
-    if cats_cur:
-        name, rev = cats_cur[0]
-        top = {"name": name, "revenue": rev, "share_pct": round(rev / cur.revenue * 100, 1) if cur.revenue else 0,
-               "change": _pct_change(rev, cats_prev.get(name, 0.0))}
+    last_day = as_of.date()
+    this_week = analytics_service.revenue_series(db, last_day - timedelta(days=TREND_DAYS - 1), last_day)  # chart points
+    # Pill next to the chart: rolling 7x24h windows, so a partially elapsed "today" does not skew the comparison.
+    week_cur = orders.period_kpis(db, as_of - timedelta(days=TREND_DAYS), end).revenue
+    week_prev = orders.period_kpis(db, as_of - timedelta(days=TREND_DAYS * 2), as_of - timedelta(days=TREND_DAYS)).revenue
+
+    categories = orders.category_revenue(db, cur_start, end)
+    prev_categories = dict(orders.category_revenue(db, prev_start, cur_start))
+    if categories:
+        name, revenue = categories[0]
+        top = {"name": name, "revenue": revenue, "share_pct": round(revenue / cur.revenue * 100, 1) if cur.revenue else 0,
+               "change": _pct_change(revenue, prev_categories.get(name, 0.0))}
     else:
-        top = {"name": "No data", "revenue": 0, "share_pct": 0, "change": 0}
+        top = {"name": "No sales yet", "revenue": 0, "share_pct": 0, "change": 0}
 
-    target = repo.monthly_target(db)
-    user = repo.current_user(db)
+    target = meta.monthly_target(db)
+    user = meta.current_user(db)
 
     raw = {
         "user": {"name": user.name if user else "Guest", "role": user.role if user else ""},
-        "unread_notifications": repo.unread_alert_count(db),
+        "unread_notifications": meta.unread_alert_count(db),
         "kpis": {
             "revenue": {"value": cur.revenue, "change": _pct_change(cur.revenue, prev.revenue)},
             "orders": {"value": cur.orders, "change": _pct_change(cur.orders, prev.orders)},
@@ -61,19 +60,17 @@ def get_dashboard(db: Session) -> DashboardResponse:
             "profit": {"value": cur.profit, "change": _pct_change(cur.profit, prev.profit)},
         },
         "analytics": {
-            "revenue_trend": trend,
+            "revenue_trend": [{"label": d.strftime("%a"), "value": v} for d, v in this_week],
+            "revenue_trend_change": _pct_change(week_cur, week_prev),
             "orders_summary": {
-                "total_orders": cur.orders,
+                "total_orders": total_orders,
                 "average_order_value": round(cur.revenue / cur.orders, 2) if cur.orders else 0,
-                "fulfilment_rate": round(cur.delivered / cur.orders * 100, 1) if cur.orders else 0,
+                "fulfilment_rate": round(delivered / total_orders * 100, 1) if total_orders else 0,
                 "target_achieved": round(cur.revenue / target * 100, 1) if target else 0,
+                "status_breakdown": breakdown,
             },
             "top_category": top,
         },
-        "recent_activities": [
-            {"id": f"act-{a.id}", "type": a.type, "title": a.title, "subtitle": a.subtitle,
-             "amount": float(a.amount) if a.amount is not None else None, "timestamp": _aware(a.created_at)}
-            for a in repo.recent_activities(db)
-        ],
+        "recent_activities": activity_service.list_activities(db, RECENT_ACTIVITY_LIMIT, 0).items,
     }
     return DashboardResponse.model_validate(raw)

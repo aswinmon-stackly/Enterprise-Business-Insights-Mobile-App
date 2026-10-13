@@ -11,7 +11,7 @@ import { ScreenContainer } from '../components/ScreenContainer';
 import { SectionHeader } from '../components/SectionHeader';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { RootTabParamList } from '../navigation/types';
-import { greeting } from '../utils/format';
+import { greeting, quarterLabel } from '../utils/format';
 
 type Props = BottomTabScreenProps<RootTabParamList, 'Dashboard'>;
 
@@ -37,6 +37,9 @@ export function DashboardScreen({ navigation }: Props) {
       <DashboardHeader
         greeting={greeting()}
         userName={data.user.name}
+        role={data.user.role}
+        status={error ? 'degraded' : 'operational'}
+        periodLabel={quarterLabel()}
         unreadCount={data.unreadNotifications}
         onProfilePress={() => navigation.navigate('Profile')}
         onNotificationPress={() => navigation.navigate('Alerts')}
@@ -44,7 +47,12 @@ export function DashboardScreen({ navigation }: Props) {
       <KpiGrid kpis={data.kpis} />
       <View style={styles.section}>
         <SectionHeader title="Analytics" actionLabel="View all" onActionPress={() => navigation.navigate('Analytics')} />
-        <AnalyticsPreview revenueTrend={data.revenueTrend} salesSummary={data.salesSummary} topCategory={data.topCategory} />
+        <AnalyticsPreview
+          revenueTrend={data.revenueTrend}
+          revenueTrendChangePct={data.revenueTrendChangePct}
+          salesSummary={data.salesSummary}
+          topCategory={data.topCategory}
+        />
       </View>
       <View style={styles.section}>
         <SectionHeader title="Recent Activity" />
@@ -53,4 +61,4 @@ export function DashboardScreen({ navigation }: Props) {
     </ScreenContainer>
   );
 }
-const styles = StyleSheet.create({ section: { gap: 8 } });
+const styles = StyleSheet.create({ section: { gap: 10 } });

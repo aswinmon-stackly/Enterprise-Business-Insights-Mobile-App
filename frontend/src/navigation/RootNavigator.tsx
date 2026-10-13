@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
@@ -27,12 +28,14 @@ function Tabs() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.inkMuted,
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
-        tabBarStyle: { height: 58 + insets.bottom, paddingTop: 6, paddingBottom: Math.max(insets.bottom, 6), borderTopColor: colors.border },
-        tabBarIcon: ({ focused, color, size }) => (
-          <Ionicons name={focused ? TAB_ICONS[route.name].active : TAB_ICONS[route.name].inactive} size={size} color={color} />
+        tabBarActiveTintColor: colors.primaryDark,
+        tabBarInactiveTintColor: '#8A94A8',
+        tabBarLabelStyle: { fontSize: 13, fontWeight: '600' },
+        tabBarStyle: { height: 66 + insets.bottom, paddingTop: 8, paddingBottom: Math.max(insets.bottom, 8), borderTopColor: colors.border, backgroundColor: colors.surface },
+        tabBarIcon: ({ focused, color }) => (
+          <View style={[styles.pill, focused && styles.pillActive]}>
+            <Ionicons name={focused ? TAB_ICONS[route.name].active : TAB_ICONS[route.name].inactive} size={24} color={color} />
+          </View>
         ),
       })}
     >
@@ -47,3 +50,8 @@ function Tabs() {
 export function RootNavigator() {
   return <NavigationContainer><Tabs /></NavigationContainer>;
 }
+
+const styles = StyleSheet.create({
+  pill: { width: 60, height: 38, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  pillActive: { backgroundColor: colors.primarySoft },
+});

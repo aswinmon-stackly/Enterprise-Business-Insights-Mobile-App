@@ -29,7 +29,7 @@ def seed_database(db: Session, now: datetime | None = None, seed: int = 42) -> N
     db.flush()
 
     orders: list[Order] = []
-    n = 1000
+    n = 100
     for offset in range(DAYS - 1, -1, -1):
         growth = 0.85 + 0.30 * ((DAYS - 1 - offset) / (DAYS - 1))  # revenue trends upward over the window
         for _ in range(rng.randint(44, 62)):

@@ -1,10 +1,13 @@
 import React from 'react';
-import { StyleSheet, View, ViewStyle } from 'react-native';
-import { colors, radius } from '../theme';
+import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { colors, radius, shadow } from '../theme';
 
-export function Card({ children, style }: { children: React.ReactNode; style?: ViewStyle }) {
-  return <View style={[styles.card, style]}>{children}</View>;
+interface Props { children: React.ReactNode; style?: StyleProp<ViewStyle>; accent?: string }
+
+/** Base surface. `accent` draws the coloured top edge that curves into the corners. */
+export function Card({ children, style, accent }: Props) {
+  return <View style={[styles.card, accent ? { borderTopWidth: 3, borderTopColor: accent } : null, style]}>{children}</View>;
 }
 const styles = StyleSheet.create({
-  card: { backgroundColor: colors.surface, borderRadius: radius.md, padding: 16, borderWidth: 1, borderColor: colors.border },
+  card: { backgroundColor: colors.surface, borderRadius: radius.md, padding: 16, borderWidth: 1, borderColor: colors.border, ...shadow },
 });

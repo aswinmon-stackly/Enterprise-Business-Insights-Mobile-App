@@ -6,33 +6,40 @@ import { formatCurrencyCompact, formatNumber, formatPct } from '../utils/format'
 import { Card } from './Card';
 import { ChangeBadge } from './ChangeBadge';
 import { StatItem } from './StatItem';
+import { StatusBreakdown } from './StatusBreakdown';
 import { TrendChart } from './TrendChart';
 
-type Props = Pick<DashboardData, 'revenueTrend' | 'salesSummary' | 'topCategory'>;
+type Props = Pick<DashboardData, 'revenueTrend' | 'revenueTrendChangePct' | 'salesSummary' | 'topCategory'>;
 
-export function AnalyticsPreview({ revenueTrend, salesSummary: s, topCategory: c }: Props) {
+export function AnalyticsPreview({ revenueTrend, revenueTrendChangePct, salesSummary: s, topCategory: c }: Props) {
   return (
     <View style={styles.wrap}>
-      <Card>
-        <Text style={styles.cardTitle}>Revenue trend</Text>
-        <Text style={styles.cardSub}>Last 7 days</Text>
-        <View style={{ marginTop: 12 }}><TrendChart data={revenueTrend} /></View>
+      <Card accent={colors.primary} style={styles.card}>
+        <View style={styles.headRow}>
+          <View style={styles.headText}>
+            <Text style={styles.cardTitle}>Revenue Trend</Text>
+            <Text style={styles.cardSub}>Last 7 days · daily revenue</Text>
+          </View>
+          <ChangeBadge changePct={revenueTrendChangePct} showSign />
+        </View>
+        <View style={{ marginTop: 8 }}><TrendChart data={revenueTrend} formatValue={formatCurrencyCompact} /></View>
       </Card>
 
-      <Card>
-        <Text style={styles.cardTitle}>Sales summary</Text>
+      <Card accent={colors.teal} style={styles.card}>
+        <Text style={styles.cardTitle}>Sales Summary</Text>
         <View style={styles.stats}>
-          <StatItem label="Total orders" value={formatNumber(s.totalOrders)} />
+          <StatItem label="Orders placed" value={formatNumber(s.totalOrders)} />
           <StatItem label="Avg. order value" value={formatCurrencyCompact(s.avgOrderValue)} />
         </View>
         <View style={styles.stats}>
           <StatItem label="Fulfilment rate" value={formatPct(s.fulfilmentRatePct)} />
           <StatItem label="Target achieved" value={`${s.targetAchievedPct}%`} />
         </View>
+        <StatusBreakdown items={s.statusBreakdown} />
         <View style={styles.track}><View style={[styles.fill, { width: `${Math.min(s.targetAchievedPct, 100)}%` }]} /></View>
       </Card>
 
-      <Card>
+      <Card accent={colors.orange} style={styles.card}>
         <Text style={styles.cardSub}>Top performing category</Text>
         <Text style={styles.catName}>{c.name}</Text>
         <View style={styles.catRow}>
@@ -45,13 +52,16 @@ export function AnalyticsPreview({ revenueTrend, salesSummary: s, topCategory: c
   );
 }
 const styles = StyleSheet.create({
-  wrap: { gap: 12 },
-  cardTitle: { fontSize: font.title, fontWeight: '700', color: colors.ink },
-  cardSub: { fontSize: font.caption + 1, color: colors.inkMuted },
-  stats: { flexDirection: 'row', gap: 16, marginTop: 14 },
-  track: { height: 8, borderRadius: 4, backgroundColor: colors.primarySoft, marginTop: 16, overflow: 'hidden' },
-  fill: { height: '100%', backgroundColor: colors.teal, borderRadius: 4 },
-  catName: { fontSize: font.h1, fontWeight: '700', color: colors.ink, marginTop: 4 },
-  catRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginVertical: 6 },
-  catRevenue: { fontSize: font.title, fontWeight: '600', color: colors.ink },
+  wrap: { gap: 14 },
+  card: { padding: 18, borderRadius: 22 },
+  headRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 },
+  headText: { flex: 1 },
+  cardTitle: { fontSize: 20, fontWeight: '800', color: colors.ink, letterSpacing: -0.2 },
+  cardSub: { fontSize: font.body, color: colors.inkMuted, marginTop: 2 },
+  stats: { flexDirection: 'row', gap: 16, marginTop: 16 },
+  track: { height: 10, borderRadius: 5, backgroundColor: colors.tealSoft, marginTop: 18, overflow: 'hidden' },
+  fill: { height: '100%', backgroundColor: colors.teal, borderRadius: 5 },
+  catName: { fontSize: 24, fontWeight: '800', color: colors.ink, marginTop: 6, letterSpacing: -0.3 },
+  catRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginVertical: 8 },
+  catRevenue: { fontSize: font.h2, fontWeight: '700', color: colors.ink },
 });

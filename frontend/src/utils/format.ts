@@ -34,3 +34,12 @@ export function formatRelativeTime(iso: string, now: number = Date.now()): strin
   if (h < 48) return 'Yesterday';
   return `${Math.floor(h / 24)} days ago`;
 }
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const;
+
+/** e.g. "Q4 · Oct 2026" */
+export function quarterLabel(date = new Date()): string {
+  return `Q${Math.floor(date.getMonth() / 3) + 1} · ${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
+}
+
+export const initialOf = (name: string): string => name.trim().charAt(0).toUpperCase() || '?';

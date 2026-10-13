@@ -1,17 +1,19 @@
+# Local PostgreSQL for development. Credentials come from a git-ignored `.env` next to this file
+# (copy .env.example -> .env). Nothing secret is stored in this file.
 services:
   db:
     image: postgres:16
     container_name: business_insights_db
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: business_insights
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env (see .env.example)}
+      POSTGRES_DB: ${POSTGRES_DB:-business_insights}
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d business_insights"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-business_insights}"]
       interval: 5s
       retries: 10
 volumes:

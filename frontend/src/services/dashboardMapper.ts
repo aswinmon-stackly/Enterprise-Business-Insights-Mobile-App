@@ -22,11 +22,13 @@ export function mapDashboard(r: DashboardResponse, now: number = Date.now()): Da
       id, label, format, value: r.kpis[id].value, changePct: r.kpis[id].change,
     })),
     revenueTrend: r.analytics.revenueTrend,
+    revenueTrendChangePct: r.analytics.revenueTrendChange,
     salesSummary: {
       totalOrders: s.totalOrders,
       avgOrderValue: s.averageOrderValue,
       fulfilmentRatePct: s.fulfilmentRate,
       targetAchievedPct: s.targetAchieved,
+      statusBreakdown: s.statusBreakdown,
     },
     topCategory: { name: c.name, revenue: c.revenue, sharePct: c.sharePct, changePct: c.change },
     activities: r.recentActivities.map((a) => ({

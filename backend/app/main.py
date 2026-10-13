@@ -1,29 +1,18 @@
-from contextlib import asynccontextmanager
-
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-import app.models  # noqa: F401  (registers tables on Base.metadata)
-from app.config import settings
-from app.db.base import Base
-from app.db.session import engine, get_db
-from app.routers import dashboard
-
-
-@asynccontextmanager
-async def lifespan(_: FastAPI):
-    Base.metadata.create_all(engine)  # dev convenience; swap for Alembic migrations in production
-    yield
-
+from app.core.config import settings
+from app.core.errors import register_exception_handlers
+from app.db.session import get_db
+from app.routers import activities, analytics, customers, dashboard, orders
 
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
-    description="Backend for the Enterprise Business Insights mobile app (FastAPI + PostgreSQL).",
-    lifespan=lifespan,
+    description="Backend for the Enterprise Business Insights mobile app (FastAPI + PostgreSQL). "
+                "Schema is managed with Alembic migrations.",
 )
 
 app.add_middleware(
@@ -33,8 +22,10 @@ app.add_middleware(
     allow_methods=["GET"],
     allow_headers=["*"],
 )
+register_exception_handlers(app)
 
-app.include_router(dashboard.router)
+for module in (dashboard, orders, customers, analytics, activities):
+    app.include_router(module.router)
 
 
 @app.get("/health", tags=["Health"], summary="Liveness check")
@@ -42,10 +33,7 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
-@app.get("/health/db", tags=["Health"], summary="Database connectivity check")
+@app.get("/health/db", tags=["Health"], summary="Database connectivity check (503 if unreachable)")
 def health_db(db: Session = Depends(get_db)) -> dict[str, str]:
-    try:
-        db.execute(text("SELECT 1"))
-    except SQLAlchemyError as exc:
-        raise HTTPException(status_code=503, detail="Database unavailable") from exc
+    db.execute(text("SELECT 1"))
     return {"status": "ok"}

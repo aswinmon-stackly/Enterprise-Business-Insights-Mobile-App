@@ -17,7 +17,10 @@ export interface SalesSummary {
   avgOrderValue: number;
   fulfilmentRatePct: number;
   targetAchievedPct: number;
+  statusBreakdown: StatusCount[];
 }
+
+export interface StatusCount { status: string; count: number }
 
 export interface TopCategory { name: string; revenue: number; sharePct: number; changePct: number }
 
@@ -37,6 +40,7 @@ export interface DashboardData {
   unreadNotifications: number;
   kpis: Kpi[];
   revenueTrend: TrendPoint[];
+  revenueTrendChangePct: number;
   salesSummary: SalesSummary;
   topCategory: TopCategory;
   activities: Activity[];

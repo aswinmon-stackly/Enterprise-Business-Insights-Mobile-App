@@ -12,11 +12,13 @@ export interface DashboardResponse {
   };
   analytics: {
     revenueTrend: { label: string; value: number }[];
+    revenueTrendChange: number;
     ordersSummary: {
       totalOrders: number;
       averageOrderValue: number;
       fulfilmentRate: number;
       targetAchieved: number;
+      statusBreakdown: { status: string; count: number }[];
     };
     topCategory: { name: string; revenue: number; sharePct: number; change: number };
   };
