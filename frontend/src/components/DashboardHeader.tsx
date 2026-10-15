@@ -13,21 +13,27 @@ interface Props {
   userName: string;
   role: string;
   status: SystemStatus;
-  periodLabel: string;
   unreadCount?: number;
-  onProfilePress: () => void;      // navigation is injected by the screen, never hardcoded here
+  onProfilePress: () => void;    
   onNotificationPress: () => void;
 }
+const getTodayDate = () => {
+  return new Date().toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).replace(',', '');
+};
 
-export function DashboardHeader({ greeting, userName, role, status, periodLabel, unreadCount = 0, onProfilePress, onNotificationPress }: Props) {
+export function DashboardHeader({ greeting, userName, role, status, unreadCount = 0, onProfilePress, onNotificationPress }: Props) {
   const ok = status === 'operational';
   return (
-    <Card accent={colors.primary} style={styles.card}>
+    <Card style={styles.card}>
       <View style={styles.top}>
         <Pressable onPress={onProfilePress} style={styles.user} accessibilityRole="button" accessibilityLabel="Open profile">
           <View style={styles.avatar}><Text style={styles.avatarText}>{initialOf(userName)}</Text></View>
           <View style={styles.texts}>
-            {/* <Text style={styles.greeting}>{greeting} 👋</Text> */}
+            <Text style={styles.greeting}>{greeting} 👋</Text>
             <Text style={styles.name} numberOfLines={1}>{userName}</Text>
             {role ? <Text style={styles.role} numberOfLines={1}>{role}</Text> : null}
           </View>
@@ -40,7 +46,7 @@ export function DashboardHeader({ greeting, userName, role, status, periodLabel,
       <View style={styles.chips}>
         <Chip label={ok ? 'All systems operational' : 'Connection issue'}
           leading={<View style={[styles.dot, { backgroundColor: ok ? colors.positive : colors.negative }]} />} />
-        <Chip tone="info" label={periodLabel} leading={<Ionicons name="calendar-outline" size={16} color={colors.primary} />} />
+        <Chip tone="info" label={getTodayDate()} leading={<Ionicons name="calendar-outline" size={16} color={colors.primary} />} />
       </View>
     </Card>
   );

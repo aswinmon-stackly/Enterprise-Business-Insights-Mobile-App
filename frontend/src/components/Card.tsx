@@ -9,5 +9,10 @@ export function Card({ children, style, accent }: Props) {
   return <View style={[styles.card, accent ? { borderTopWidth: 3, borderTopColor: accent } : null, style]}>{children}</View>;
 }
 const styles = StyleSheet.create({
-  card: { backgroundColor: colors.surface, borderRadius: radius.md, padding: 16, borderWidth: 1, borderColor: colors.border, ...shadow },
+  card: { 
+    backgroundColor: colors.surface, 
+    borderRadius: radius.md, 
+    padding: 16, 
+    borderWidth: 1, 
+    borderColor: colors.border, ...shadow },
 });

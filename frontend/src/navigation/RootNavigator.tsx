@@ -33,7 +33,7 @@ function Tabs() {
         tabBarLabelStyle: { fontSize: 13, fontWeight: '600' },
         tabBarStyle: { height: 66 + insets.bottom, paddingTop: 8, paddingBottom: Math.max(insets.bottom, 8), borderTopColor: colors.border, backgroundColor: colors.surface },
         tabBarIcon: ({ focused, color }) => (
-          <View style={[styles.pill, focused && styles.pillActive]}>
+          <View style={[styles.pill]}>
             <Ionicons name={focused ? TAB_ICONS[route.name].active : TAB_ICONS[route.name].inactive} size={24} color={color} />
           </View>
         ),
