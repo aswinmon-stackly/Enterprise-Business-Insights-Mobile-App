@@ -25,7 +25,6 @@ A mobile business intelligence application built using **React Native (Expo, Typ
 
 ### Database
 - PostgreSQL
-- Docker (optional)
 - pgAdmin / psql
 
 ---
