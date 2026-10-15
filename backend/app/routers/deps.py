@@ -19,3 +19,10 @@ def pagination_params(default_limit: int = 20, max_limit: int = 100):
         return Pagination(limit=limit, offset=offset)
 
     return dependency
+
+
+def get_today():
+    """Current date in the business time zone. A dependency so tests can pin 'today'."""
+    from app.utils.dates import today_local
+
+    return today_local()

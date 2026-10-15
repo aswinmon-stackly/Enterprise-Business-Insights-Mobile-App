@@ -1,3 +1,4 @@
+
 {
   "expo": {
     "name": "Business Insights",
@@ -5,12 +6,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
-    "ios": {
-      "supportsTablet": true
-    },
-    "android": {},
-    "plugins": [
-      "@react-native-community/datetimepicker"
-    ]
+    "ios": { "supportsTablet": true },
+    "android": {}
   }
 }

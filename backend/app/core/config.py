@@ -1,3 +1,6 @@
+import re
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -8,8 +11,10 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     app_name: str = "Enterprise Business Insights API"
-    app_version: str = "0.3.0"
+    app_version: str = "0.4.0"
     database_url: str  # required: DATABASE_URL
+    # All calendar dates ("today", this month, custom ranges, daily buckets) are interpreted in this zone.
+    business_timezone: str = "Asia/Kolkata"
 
     # Native Expo apps are not subject to CORS; Expo *web* (browser) is. Allow localhost/LAN dev origins.
     cors_origin_regex: str = (
@@ -24,6 +29,17 @@ class Settings(BaseSettings):
         for prefix in ("postgresql+psycopg2://", "postgresql://", "postgres://"):
             if v.startswith(prefix):
                 return "postgresql+psycopg://" + v[len(prefix):]
+        return v
+
+    @field_validator("business_timezone")
+    @classmethod
+    def _valid_timezone(cls, v: str) -> str:
+        if not re.fullmatch(r"[A-Za-z0-9_+\-/]+", v):
+            raise ValueError("BUSINESS_TIMEZONE must be an IANA name such as Asia/Kolkata")
+        try:
+            ZoneInfo(v)
+        except ZoneInfoNotFoundError as exc:
+            raise ValueError(f"Unknown time zone '{v}' (on Windows run: pip install tzdata)") from exc
         return v
 
     @property

@@ -8,6 +8,7 @@ from app.repositories import meta_repository as meta
 from app.repositories import order_repository as orders
 from app.schemas.dashboard import DashboardResponse
 from app.services import activity_service, analytics_service
+from app.utils.dates import local_date_of
 from app.utils.time import ensure_utc, utc_now
 
 RECENT_ACTIVITY_LIMIT = 5
@@ -32,7 +33,7 @@ def get_dashboard(db: Session) -> DashboardResponse:
     total_orders = sum(b["count"] for b in breakdown)
     delivered = counts.get(OrderStatus.DELIVERED.value, 0)
 
-    last_day = as_of.date()
+    last_day = local_date_of(as_of)
     this_week = analytics_service.revenue_series(db, last_day - timedelta(days=TREND_DAYS - 1), last_day)  # chart points
     # Pill next to the chart: rolling 7x24h windows, so a partially elapsed "today" does not skew the comparison.
     week_cur = orders.period_kpis(db, as_of - timedelta(days=TREND_DAYS), end).revenue

@@ -2,13 +2,11 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { StatusCount } from '../types';
 import { colors, font } from '../theme';
+import { STATUS_COLORS, statusLabel } from '../theme/status';
+import { OrderStatus } from '../types/analytics';
 import { formatNumber } from '../utils/format';
 
-const TONE: Record<string, string> = {
-  delivered: colors.positive, shipped: colors.primary, confirmed: colors.teal,
-  pending: colors.amber, cancelled: colors.negative, returned: colors.purple,
-};
-const cap = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
+const cap = statusLabel;
 
 /** Orders grouped by status (counts come straight from the database via the API). */
 export function StatusBreakdown({ items }: { items: StatusCount[] }) {
@@ -19,7 +17,7 @@ export function StatusBreakdown({ items }: { items: StatusCount[] }) {
       <View style={styles.row}>
         {items.map((i) => (
           <View key={i.status} style={styles.pill} accessible accessibilityLabel={`${cap(i.status)} ${i.count}`}>
-            <View style={[styles.dot, { backgroundColor: TONE[i.status] ?? colors.inkMuted }]} />
+            <View style={[styles.dot, { backgroundColor: STATUS_COLORS[i.status as OrderStatus] ?? colors.inkMuted }]} />
             <Text style={styles.label}>{cap(i.status)}</Text>
             <Text style={styles.count}>{formatNumber(i.count)}</Text>
           </View>

@@ -13,10 +13,12 @@ interface Props {
   userName: string;
   role: string;
   status: SystemStatus;
+  periodLabel: string;
   unreadCount?: number;
-  onProfilePress: () => void;    
+  onProfilePress: () => void;      // navigation is injected by the screen, never hardcoded here
   onNotificationPress: () => void;
 }
+
 const getTodayDate = () => {
   return new Date().toLocaleDateString('en-GB', {
     day: '2-digit',
@@ -25,7 +27,7 @@ const getTodayDate = () => {
   }).replace(',', '');
 };
 
-export function DashboardHeader({ greeting, userName, role, status, unreadCount = 0, onProfilePress, onNotificationPress }: Props) {
+export function DashboardHeader({ greeting, userName, role, status, periodLabel, unreadCount = 0, onProfilePress, onNotificationPress }: Props) {
   const ok = status === 'operational';
   return (
     <Card style={styles.card}>
@@ -46,7 +48,7 @@ export function DashboardHeader({ greeting, userName, role, status, unreadCount 
       <View style={styles.chips}>
         <Chip label={ok ? 'All systems operational' : 'Connection issue'}
           leading={<View style={[styles.dot, { backgroundColor: ok ? colors.positive : colors.negative }]} />} />
-        <Chip tone="info" label={getTodayDate()} leading={<Ionicons name="calendar-outline" size={16} color={colors.primary} />} />
+       <Chip tone="info" label={getTodayDate()} leading={<Ionicons name="calendar-outline" size={16} color={colors.primary} />} />
       </View>
     </Card>
   );
